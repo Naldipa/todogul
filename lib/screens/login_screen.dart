@@ -3,6 +3,7 @@ import 'package:todogul/auth/auth_service.dart';
 import 'package:todogul/screens/home_screen.dart';
 import 'package:todogul/screens/register_screen.dart';
 import 'package:flutter/gestures.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,23 +13,32 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // text controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final authService = AuthService();
   bool _isLoading = false;
 
-  // login button pressed
   void login() async {
-    // Prepare data
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    // Attempt login
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Email and password cannot be empty")),
-      );
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.warning,
+        animType: AnimType.scale,
+        title: 'Oops!',
+        titleTextStyle: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.orange[700],
+        ),
+        desc: 'Email dan password tidak boleh kosong!',
+        descTextStyle: TextStyle(fontSize: 16),
+        btnOkColor: Colors.orange[700],
+        buttonsTextStyle: TextStyle(fontSize: 16),
+        btnOkText: 'Mengerti',
+      ).show();
       return;
     }
 
@@ -37,42 +47,81 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await authService.signInWithEmailAndPassword(email: email, password: password);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login successful")),
-      );
+      await authService.signInWithEmailAndPassword(
+          email: email, password: password);
 
-      // Navigate to HomeScreen after successful login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+      // Show success dialog briefly
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.success,
+        animType: AnimType.scale,
+        autoHide: Duration(seconds: 1), // Auto hide after 1 second
+        title: 'Login Berhasil',
+        desc: 'Selamat datang di Todogul!',
+        dismissOnTouchOutside: false,
+        dismissOnBackKeyPress: false,
+      ).show().then((_) {
+        // Navigate to home screen after dialog is dismissed
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      });
     } catch (e) {
       if (e.toString().contains('Email not confirmed')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Email not confirmed. Please check your email for the confirmation link."),
-            action: SnackBarAction(
-              label: 'Resend Email',
-              onPressed: () async {
-                try {
-                  await authService.resendConfirmationEmail(email);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Confirmation email resent")),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error: ${e.toString()}")),
-                  );
-                }
-              },
-            ),
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.info,
+          animType: AnimType.scale,
+          title: 'Email Belum Dikonfirmasi',
+          titleTextStyle: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue[700],
           ),
-        );
+          desc: 'Periksa email Anda untuk konfirmasi.',
+          descTextStyle: TextStyle(fontSize: 16),
+          btnOkColor: Colors.blue[700],
+          btnCancelColor: Colors.grey[400],
+          buttonsTextStyle: TextStyle(fontSize: 16),
+          btnCancelText: 'Kirim Ulang',
+          btnOkText: 'Mengerti',
+          btnCancelOnPress: () async {
+            await authService.resendConfirmationEmail(email);
+            AwesomeDialog(
+              context: context,
+              dialogType: DialogType.success,
+              animType: AnimType.scale,
+              title: 'Terkirim',
+              titleTextStyle: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[700],
+              ),
+              desc: 'Email konfirmasi telah dikirim ulang.',
+              descTextStyle: TextStyle(fontSize: 16),
+              btnOkColor: Colors.green[700],
+              btnOkText: 'Mengerti',
+            ).show();
+          },
+        ).show();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${e.toString()}")),
-        );
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          title: 'Login Gagal',
+          titleTextStyle: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.red[700],
+          ),
+          desc: 'Email atau password salah.\nSilakan coba lagi.',
+          descTextStyle: TextStyle(fontSize: 16),
+          btnOkColor: Colors.red[700],
+          buttonsTextStyle: TextStyle(fontSize: 16),
+          btnOkText: 'Mengerti',
+        ).show();
       }
     } finally {
       setState(() {
@@ -90,10 +139,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tombol Back
             GestureDetector(
               onTap: () {
-                Navigator.pop(context); // Kembali ke layar sebelumnya
+                Navigator.pop(context);
               },
               child: Image.asset(
                 'img/back_icon.png',
@@ -101,8 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 24,
               ),
             ),
-            SizedBox(height: 30), 
-            // Judul Login
+            SizedBox(height: 30),
             Text(
               'Login',
               style: TextStyle(
@@ -111,8 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: 40), 
-            // Field Email
+            SizedBox(height: 40),
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
@@ -129,7 +175,6 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(color: Colors.white),
             ),
             SizedBox(height: 30),
-            // Field Password
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
@@ -146,7 +191,6 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(color: Colors.white),
             ),
             Spacer(),
-            // Tombol Login
             ElevatedButton(
               onPressed: _isLoading ? null : login,
               style: ElevatedButton.styleFrom(
@@ -165,7 +209,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Garis dengan tulisan "or"
             Row(
               children: [
                 Expanded(
@@ -190,7 +233,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             SizedBox(height: 20),
-            // Tombol Login dengan Google
             OutlinedButton(
               onPressed: () {
                 // Aksi Login dengan Google
@@ -215,7 +257,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             SizedBox(height: 10),
-            // Tombol Login dengan Apple
             OutlinedButton(
               onPressed: () {
                 // Aksi Login dengan Apple
@@ -240,7 +281,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Footer dengan Register
             Center(
               child: RichText(
                 text: TextSpan(
@@ -255,10 +295,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
-                          // Navigasi ke RegisterScreen
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => RegisterScreen()),
+                            MaterialPageRoute(
+                                builder: (context) => RegisterScreen()),
                           );
                         },
                     ),

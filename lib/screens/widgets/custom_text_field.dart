@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
-  final String? labelText;
+  final String labelText;
   final int maxLines;
+  final TextEditingController? controller;
 
-  CustomTextField({required this.hintText, this.labelText, this.maxLines = 1});
+  CustomTextField({
+    required this.hintText,
+    required this.labelText,
+    this.maxLines = 1,
+    this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       maxLines: maxLines,
+      style:
+          TextStyle(color: Colors.white), // Menambahkan style untuk teks input
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.white, fontSize: 14),

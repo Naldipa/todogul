@@ -3,8 +3,15 @@ import 'package:flutter/material.dart';
 class CustomDropdown extends StatelessWidget {
   final String labelText;
   final List<String> options;
+  final String? value; // Current selected value
+  final ValueChanged<String?>? onChanged; // Callback for value changes
 
-  CustomDropdown({required this.labelText, required this.options});
+  CustomDropdown({
+    required this.labelText,
+    required this.options,
+    this.value,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +27,8 @@ class CustomDropdown extends StatelessWidget {
         ),
       ),
       dropdownColor: Colors.black,
-      value: options[0],
-      onChanged: (value) {},
+      value: value, // Use the current value
+      onChanged: onChanged, // Call the provided onChanged function
       items: options.map((option) {
         return DropdownMenuItem<String>(
           value: option,
