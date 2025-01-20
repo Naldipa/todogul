@@ -10,31 +10,47 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<dynamic>> _tasksFuture;
+  String _searchQuery = ''; // Variabel untuk menyimpan query pencarian
 
   @override
   void initState() {
     super.initState();
-    _tasksFuture = fetchTasks();
+    _tasksFuture = fetchTasks(); // Ambil tasks saat pertama kali muncul
   }
 
+  // Fungsi untuk mengambil task dari Supabase
   Future<List<dynamic>> fetchTasks() async {
     try {
-      final response = await Supabase.instance.client
-          .from('tasks')
-          .select()
-          .order('created_at', ascending: false);
-      return response;
+      // Jika tidak ada query pencarian, ambil semua task
+      if (_searchQuery.isEmpty) {
+        final response = await Supabase.instance.client
+            .from('tasks')
+            .select()
+            .order('created_at', ascending: false);
+        return response;
+      } else {
+        // Jika ada query pencarian, filter berdasarkan title atau description
+        final response = await Supabase.instance.client
+            .from('tasks')
+            .select()
+            .ilike('title', '%$_searchQuery%') // Pencarian di title
+            .or('description.ilike.%$_searchQuery%') // Pencarian di description
+            .order('created_at', ascending: false);
+        return response;
+      }
     } catch (e) {
       return Future.error('Failed to fetch tasks: $e');
     }
   }
 
+  // Refresh task setelah operasi tertentu (misal: menambah task atau menghapus task)
   void _refreshTasks() {
     setState(() {
-      _tasksFuture = fetchTasks();
+      _tasksFuture = fetchTasks(); // Mengambil ulang task sesuai query terbaru
     });
   }
 
+  // Fungsi untuk menghapus task
   Future<void> _deleteTask(int taskId) async {
     try {
       await Supabase.instance.client.from('tasks').delete().eq('id', taskId);
@@ -50,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Fungsi untuk membuka bottom sheet untuk mengedit task
   void _openEditTaskBottomSheet(dynamic task) {
     showModalBottomSheet(
       context: context,
@@ -59,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => CreateTaskBottomSheet(
-        taskId: task['id'].toString(), // Ensure taskId is passed as String
+        taskId: task['id'].toString(),
         taskTitle: task['title'],
         taskDescription: task['description'],
       ),
@@ -68,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Add the buildTaskItem method here
+  // Fungsi untuk membangun item task
   Widget buildTaskItem(Map<String, dynamic> task) {
     return Card(
       color: Color(0xFF1E1E1E), // Warna gelap untuk card
@@ -210,6 +227,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: TextField(
                 style: TextStyle(color: Colors.white),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value; // Update pencarian saat input berubah
+                    _tasksFuture = fetchTasks(); // Refresh daftar task
+                  });
+                },
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search, color: Colors.white),
                   hintText: 'Search tasks...',
@@ -263,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: tasks.length,
                     itemBuilder: (context, index) {
                       final task = tasks[index];
-                      return buildTaskItem(task); // Use the method here
+                      return buildTaskItem(task); // Gunakan method di sini
                     },
                   );
                 }
