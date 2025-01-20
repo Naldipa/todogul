@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _currentUsername = '';
   List<String> _avatarOptions = [
     'img/avatar1.png', // Path to avatar images
-    'img/avatar2.png',
+    'img/jerison.jpeg',
     'img/avatar3.png',
     'img/avatar4.png',
     'img/avatar5.png',
@@ -59,10 +60,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'profile_image': _selectedAvatar, // Save selected avatar
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profile updated successfully!')),
-      );
-      Navigator.pop(context); // Close the screen after saving
+      // Display success dialog
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.success,
+        animType: AnimType.scale,
+        title: 'Profile Updated!',
+        titleTextStyle: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.green[700],
+        ),
+        desc: 'Your profile has been successfully updated.',
+        descTextStyle: TextStyle(
+          fontSize: 16,
+          color: Colors.grey[700],
+        ),
+        btnOkText: 'Great!',
+        btnOkColor: Colors.green[600],
+        btnOkOnPress: () {
+          Navigator.pop(context); // Close the screen after saving
+        },
+      ).show();
     }
   }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -12,22 +14,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  // Fungsi untuk menyimpan perubahan
-  void _saveChanges() {
-    String currentPassword = _currentPasswordController.text;
-    String newPassword = _newPasswordController.text;
-    String confirmPassword = _confirmPasswordController.text;
+  bool _isLoading = false;
 
-    if (newPassword == confirmPassword) {
-      // Simpan perubahan password jika cocok
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password berhasil diubah')),
+  // Fungsi untuk menyimpan perubahan
+  void _saveChanges() async {
+    final currentPassword = _currentPasswordController.text.trim();
+    final newPassword = _newPasswordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (newPassword != confirmPassword) {
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.warning,
+        animType: AnimType.scale,
+        title: 'Oops!',
+        desc: 'Password baru dan konfirmasi tidak cocok.',
+        btnOkColor: Colors.orange,
+        btnOkText: 'Mengerti',
+      ).show();
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+
+      if (user == null) {
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          title: 'Error',
+          desc: 'User tidak ditemukan.',
+          btnOkColor: Colors.red,
+          btnOkText: 'Tutup',
+        ).show();
+        return;
+      }
+
+      // Re-authenticate user with current password
+      final response = await supabase.auth.signInWithPassword(
+        email: user.email!,
+        password: currentPassword,
       );
-    } else {
-      // Tampilkan error jika tidak cocok
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password baru dan konfirmasi tidak cocok')),
-      );
+
+      if (response.user == null) {
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.error,
+          animType: AnimType.scale,
+          title: 'Gagal',
+          desc: 'Password saat ini salah.',
+          btnOkColor: Colors.red,
+          btnOkText: 'Coba Lagi',
+        ).show();
+        return;
+      }
+
+      // Update password
+      await supabase.auth.updateUser(UserAttributes(password: newPassword));
+
+      // Refresh session to ensure continuity after password change
+      await supabase.auth.refreshSession();
+
+      // Show success dialog
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.success,
+        animType: AnimType.scale,
+        title: 'Berhasil',
+        desc: 'Password berhasil diubah.',
+        btnOkText: 'Kembali',
+        btnOkColor: Colors.green,
+        btnOkOnPress: () {
+          Navigator.pushReplacementNamed(context, '/custom_drawer');
+        },
+      ).show();
+
+      // Clear input fields
+      _currentPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+    } catch (e) {
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.error,
+        animType: AnimType.scale,
+        title: 'Kesalahan',
+        desc: 'Password yang Anda masukkan salah.',
+        btnOkColor: Colors.red,
+        btnOkText: 'Tutup',
+      ).show();
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -67,20 +152,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _saveChanges,
+                onPressed: _isLoading ? null : _saveChanges,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF8687E7),
                   padding: EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
-                child: Text(
-                  'Simpan Perubahan',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
-                ),
+                child: _isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'Simpan Perubahan',
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
               ),
             ),
           ],
