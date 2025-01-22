@@ -7,7 +7,7 @@ class CreateTaskBottomSheet extends StatefulWidget {
   final String? taskId;
   final String? taskTitle;
   final String? taskDescription;
-  
+
   // Constructor to optionally pass data for editing
   CreateTaskBottomSheet({this.taskId, this.taskTitle, this.taskDescription});
 
@@ -55,8 +55,8 @@ class _CreateTaskBottomSheetState extends State<CreateTaskBottomSheet> {
         'status': selectedStatusIndex == 0 ? 'Incomplete' : 'Completed',
         'task_date': selectedDate?.toIso8601String(),
         'task_time': selectedTime != null
-    ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}:00'
-    : null,
+            ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}:00'
+            : null,
         'repeat_option': selectedRepeat,
         'day_option': selectedDay,
         'reminder_option': selectedReminder,
@@ -89,8 +89,8 @@ class _CreateTaskBottomSheetState extends State<CreateTaskBottomSheet> {
         'status': selectedStatusIndex == 0 ? 'Incomplete' : 'Completed',
         'task_date': selectedDate?.toIso8601String(),
         'task_time': selectedTime != null
-    ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}:00'
-    : null,
+            ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}:00'
+            : null,
         'repeat_option': selectedRepeat,
         'day_option': selectedDay,
         'reminder_option': selectedReminder,
@@ -137,7 +137,9 @@ class _CreateTaskBottomSheetState extends State<CreateTaskBottomSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.taskId == null ? 'Create to-do' : 'Edit to-do', // Change based on taskId
+              widget.taskId == null
+                  ? 'Create to-do'
+                  : 'Edit to-do', // Change based on taskId
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -274,7 +276,10 @@ class _CreateTaskBottomSheetState extends State<CreateTaskBottomSheet> {
             SizedBox(height: 8),
             Center(
               child: ToggleButtons(
-                isSelected: [selectedStatusIndex == 0, selectedStatusIndex == 1],
+                isSelected: [
+                  selectedStatusIndex == 0,
+                  selectedStatusIndex == 1
+                ],
                 onPressed: (index) {
                   setState(() {
                     selectedStatusIndex = index;
@@ -287,11 +292,13 @@ class _CreateTaskBottomSheetState extends State<CreateTaskBottomSheet> {
                 selectedColor: Colors.black,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text('Incomplete'),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text('Completed'),
                   ),
                 ],
@@ -301,7 +308,8 @@ class _CreateTaskBottomSheetState extends State<CreateTaskBottomSheet> {
             widget.taskId == null
                 ? ElevatedButton(
                     onPressed: () async {
-                      await addTask(_titleController.text, _descriptionController.text);
+                      await addTask(
+                          _titleController.text, _descriptionController.text);
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
@@ -317,9 +325,9 @@ class _CreateTaskBottomSheetState extends State<CreateTaskBottomSheet> {
                         child: ElevatedButton(
                           onPressed: () async {
                             await updateTask(
-                                widget.taskId!,
-                                _titleController.text,
-                                _descriptionController.text,
+                              widget.taskId!,
+                              _titleController.text,
+                              _descriptionController.text,
                             );
                             Navigator.pop(context); // Close the bottom sheet
                           },
