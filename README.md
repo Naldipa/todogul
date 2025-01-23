@@ -1,4 +1,4 @@
-![Cover TodoGul](img/covertodogul.png)
+![Cover TodoGul](covertodogul.png)
 
 # todogul - A Modern To-Do List Application
 
