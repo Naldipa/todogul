@@ -33,7 +33,7 @@ class _IntroScreenState extends State<IntroScreen> {
             Text(
               "TODOGUL",
               style: TextStyle(
-                color: Color(0xFF8875FF),
+                color: Color.fromARGB(255, 255, 255, 255),
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
